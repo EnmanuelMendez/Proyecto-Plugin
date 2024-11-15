@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32901.82
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICGFront Plugin", "ICGFront Plugin.csproj", "{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Debug|x64.ActiveCfg = Debug|x64
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Debug|x64.Build.0 = Debug|x64
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Debug|x86.ActiveCfg = Debug|x86
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Debug|x86.Build.0 = Debug|x86
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Release|x64.ActiveCfg = Release|x64
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Release|x64.Build.0 = Release|x64
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Release|x86.ActiveCfg = Release|x86
+		{FAD030D6-F9D2-4D4C-B1B1-69EFBE7ADE44}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {957B2633-1FE2-487D-A0DA-E2604B25C306}
+	EndGlobalSection
+EndGlobal
