@@ -295,9 +295,6 @@ namespace Plugin_ICGFront
 
         }
 
-
-
-
         //[Enmanuel]: comando para saber si la tabla existe
         public SqlCommand TableExistcmd()
         {
