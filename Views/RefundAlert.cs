@@ -35,6 +35,27 @@ namespace Plugin_ICGFront.Views
             this.WarningText.Text = warningText;
         }
 
+        public RefundAlert(string eventName, CreditNoteDetail creditNoteD)
+        {
+            InitializeComponent();
+
+            Color formColor;
+            string warningText;
+
+            switch (eventName)
+            {
+                default:
+                    formColor = Color.Coral;
+                    warningText =
+                        $@"La tasa de la nota de crédito es diferente a la de la factura original ({creditNoteD.DocumentId}). Se utilizará la tasa de la factura original, {creditNoteD.TasaFacturaOriginal}, por temas fiscales.";
+                    break;
+            }
+
+            SetBackgroundColor(formColor);
+            this.WarningText.Text = warningText;
+        }
+
+         
         [DllImport("USER32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 

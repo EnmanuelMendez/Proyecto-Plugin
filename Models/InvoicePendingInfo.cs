@@ -1,4 +1,5 @@
-﻿using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
+﻿using System;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace Plugin_ICGFront.Models
 {
@@ -13,6 +14,7 @@ namespace Plugin_ICGFront.Models
         public string CODVENDEDOR { get; set; }
         public string NOMVENDEDOR { get; set; }
         public string FECHA { get; set; }
+        public DateTime HORA { get; set; }
 
     }
 }

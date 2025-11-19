@@ -47,7 +47,7 @@ namespace Plugin_ICGFront
                 case "print-invoice": // Deprecated
                     PrintRaffleTickets_Event(parsedDocument);
                     break;
-                case "audit-invoice":
+                case "audit-invoice"://antes de esto debo colocar el plugin de seriales
                     AuditInvoice_Event(parsedDocument);
                     break;
                 case "send-esc":
@@ -83,9 +83,9 @@ namespace Plugin_ICGFront
                 case "clear-pending-documents":
                     ClearPendingDocuments(parsedDocument);
                     break;
-                case "saving-long-serials":
+                /*case "saving-long-serials":
                     SavingLongSerials(parsedDocument);
-                    break;
+                    break;*/
                 default:
                     InvalidEventName_Event();
                     break;
@@ -299,6 +299,20 @@ namespace Plugin_ICGFront
 
         private void AuditInvoice_Event(ParsedDocument parsedDocument)
         {
+
+            //proyecto seriales inicia aquí:
+            /*using (Form form = new SerialsInvoice())
+            {
+                form.ShowDialog();
+            }*/
+
+            //proyecto seriales termina aquí
+
+
+
+
+
+
             var canCreateInvoices = parsedDocument.CanCreateInvoices();
 
             if (!canCreateInvoices)
@@ -334,6 +348,22 @@ namespace Plugin_ICGFront
                     form.ShowDialog();
                 }
             }
+
+            //Nuevo: Las notas de crédito que excedan los 30 días y tengan una diferencia en la modenada
+
+            var hasDifferentTax = parsedDocument.HasDifferentTax();
+
+            if (hasDifferentTax != null && hasDifferentTax.TasaDiferente)
+            {
+                parsedDocument.UpdateTaxFromCreditNote();
+
+                using (Form form = new RefundAlert(_eventName, hasDifferentTax))
+                {
+                    form.ShowDialog();
+                }
+            }
+
+            // refundDetail.GreaterThan30Days
 
             var askForClientData = parsedDocument.CheckIfCustomClientInvoice();
 
@@ -376,7 +406,7 @@ namespace Plugin_ICGFront
                 return;
             }
 
-            if (taxReceiptInfo.CustomerType == "02" && taxReceiptInfo.NetTotal >= 250000)
+            if (taxReceiptInfo.CustomerType == "32" && taxReceiptInfo.NetTotal >= 250000)
             {
                 var result =
                     Utilities.ShowAlert(
@@ -405,7 +435,7 @@ namespace Plugin_ICGFront
                         !taxReceiptInfo.UniqueReceipt)
                     {
                         Utilities.ShowAlert(
-                            $@"No hay NCFs restantes de '{taxReceiptInfo.ReceiptType}'. Contacte con su administrador.",
+                            $@"No hay NCFs restantes de '{taxReceiptInfo.ReceiptType}'. Contacte con su administrador. Info Adicional: '{parsedDocument.DocumentSeries}-{parsedDocument.DocumentNumber}'. Restan: {taxReceiptInfo.RemainingReceipts}",
                             "Error", MessageBoxIcon.Error);
                         StopTransactionExecution(parsedDocument);
                         return;
@@ -573,7 +603,7 @@ namespace Plugin_ICGFront
 
             var erroredDocumentsList = parsedDocument.GetInvalidDocuments();
 
-            if (erroredDocumentsList.Count > 0)
+            /*if (erroredDocumentsList.Count > 0)
             {
                 var isCurrentDocument = erroredDocumentsList.Find(item =>
                     (item.Series == parsedDocument.DocumentSeries ||
@@ -581,7 +611,7 @@ namespace Plugin_ICGFront
                     item.Number == parsedDocument.DocumentNumber) != null;
 
                 var errorMessage = isCurrentDocument
-                    ? @"No se pudo generar un NCF para el documento guardado. Por favor, contacte al personal de tecnología para corregirlos."
+                    ? $@"No se pudo generar un NCF para el documento guardado. Por favor, contacte al personal de tecnología para corregirlos. Documentos Inválidos: {parsedDocument.GetInvalidDocuments()}"
                     : @"Existen documentos que fueron generados sin NCF. Utilice el botón 'Auditar Z' para más detalles.";
 
                 StopTransactionExecution(
@@ -590,7 +620,7 @@ namespace Plugin_ICGFront
                     errorMessage
                 );
                 return;
-            }
+            }*/
 
             var hasPriceErrors = parsedDocument.HasPriceErrors();
             var hasDocumentCurrencyMismatch = parsedDocument.HasDocumentCurrencyMismatch();

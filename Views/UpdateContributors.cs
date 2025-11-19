@@ -24,6 +24,7 @@ namespace Plugin_ICGFront.Views
         private void DowloadFileLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start("https://dgii.gov.do/app/WebApps/Consultas/RNC/DGII_RNC.zip");
+            //https://dgii.gov.do/app/WebApps/ConsultasWeb2/ConsultasWeb/consultas/rnc.aspx/DGII_RNC.zip
         }
 
         private void SelectFile_Click(object sender, EventArgs e)

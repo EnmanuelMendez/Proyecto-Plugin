@@ -60,21 +60,37 @@ namespace Plugin_ICGFront
                 UserID = UserName,
                 Password = password,
                 InitialCatalog = DatabaseName
-                //,                IntegratedSecurity = true
+                //,IntegratedSecurity = true
             };
             return new SqlConnection(builder.ConnectionString);
         }
+
+        #region Plugin Borrar Facturas Pendientes
         
-        //        IntegratedSecurity = true
-        
-         
+        //[Enmanuel]: Comando para verificar existencia de facturas pendientes.
+        private SqlCommand PendingDocumendsExistsCmd()
+        {
+            string query;
+            var command = new SqlCommand();
+
+            query = @"SELECT 
+	                    CASE 
+		                    WHEN (SELECT COUNT(*) FROM ALBVENTACAB WHERE NUMSERIE = '****') > 0 THEN 1 ELSE 0 
+                    END EXISTENCIA;";
+            command.Connection = GetSqlConnection();
+            command.CommandText = query;
+            return command;
+        }
+
+
         //[Enmnauel]: Comando para obtener documentos pendientes
         private SqlCommand GetPendingDocumentCmd() {
             string query;
             var command = new SqlCommand();
  
             query = @"SELECT
-	                    A.NUMALBARAN, A.NUMSERIE, B.NOMBRECLIENTE, A.TOTALBRUTO, A.TOTALNETO, A.CAJA, C.CODVENDEDOR, C.NOMVENDEDOR, A.FECHA
+	                    A.NUMALBARAN, A.NUMSERIE, B.NOMBRECLIENTE, FORMAT(A.TOTALBRUTO, 'C','es-Do') AS TOTALBRUTO,FORMAT(A.TOTALNETO, 'C','es-Do') AS TOTALNETO, A.CAJA, C.CODVENDEDOR, C.NOMVENDEDOR, 
+                         CAST(CONVERT(date, FECHA) AS datetime) + CAST(CAST(Hora AS time(1)) AS datetime) AS FECHA
 	                    FROM ALBVENTACAB A
 	                    JOIN CLIENTES B	ON A.CODCLIENTE = B.CODCLIENTE
 	                    JOIN VENDEDORES C ON A.CODVENDEDOR = C.CODVENDEDOR
@@ -166,6 +182,39 @@ namespace Plugin_ICGFront
 #endif
             return result;
         }
+
+        //[Enmanuel]: verificar existencia de facturas pendientes.
+        public int PendingDocumendsExists()
+        {
+            int num = 0;
+
+#if !DEBUG
+            try
+            {
+                using (var command = PendingDocumendsExistsCmd())
+                {
+                    command.Connection.Open();
+
+                    var result = command.ExecuteScalar();
+
+                    if (result != null && result.ToString() != "0")
+                        num = 1; 
+
+                    command.Connection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("error: " + ex);
+                // ignored
+            }
+#else
+            Nombre = "NULL";
+#endif
+            return num;
+        }
+
+
         //[Enmanuel]: Método Consulta Obtener Documentos Pendientes
         public List<InvoicePendingInfo> GetPendingDocuments()
         {
@@ -522,37 +571,326 @@ namespace Plugin_ICGFront
             return null;
         }
 
+        #endregion
+
+        #region Proyecto Seriales
+
+        private SqlCommand Cantidad_Kits_FacturaCmd()
+        {
+            string query;
+            var command = new SqlCommand();
+
+            query = @"SELECT COUNT(B.NUMALBARAN)
+                        FROM ALBVENTACAB A
+                        JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN
+                        JOIN ARTICULOS C ON B.CODARTICULO = C.CODARTICULO
+                        JOIN KITS D ON C.CODARTICULO = D.CODARTICULO
+                        WHERE A.NUMSERIE = @SERIE AND A.NUMALBARAN = @ALBARAN;";
+            command.Connection = GetSqlConnection();
+            command.CommandText = query;
+
+            command.Parameters.AddWithValue("@SERIE", SqlDbType.NVarChar).Value = DocumentSeries;
+            command.Parameters.AddWithValue("@ALBARAN", SqlDbType.Int).Value = DocumentNumber;
+
+            return command;
+        }
+        private SqlCommand Obtener_Articulos_CantidadCmd()
+        {
+            string query;
+            var command = new SqlCommand();
+
+            query = @"SELECT D.CODARTICULO AS CODIGOARTICULO, SUM(D.UNIDADES) AS CANTIDAD_ARTICULOS 
+                        FROM ALBVENTACAB A
+                        JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN
+                        JOIN ARTICULOS C ON B.CODARTICULO = C.CODARTICULO
+                        JOIN KITS D ON C.CODARTICULO = D.CODARTICULO
+                        WHERE A.NUMSERIE = @SERIE AND A.NUMALBARAN = @ALBARAN
+                        GROUP BY D.CODARTICULO;";
+            command.Connection = GetSqlConnection();
+            command.CommandText = query;
+
+            command.Parameters.AddWithValue("@SERIE", SqlDbType.NVarChar).Value = DocumentSeries;
+            command.Parameters.AddWithValue("@ALBARAN", SqlDbType.Int).Value = DocumentNumber;
+             
+            return command;
+        }
+        private SqlCommand Obtener_Cantidad_Maxima_Articulos_kitCmd()
+        {
+            string query;
+            var command = new SqlCommand();
+
+            query = @"SELECT MAX(SUMA)
+                        FROM (
+                            SELECT SUM(D.UNIDADES) AS SUMA 
+                            FROM ALBVENTACAB A
+                            JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN
+                            JOIN ARTICULOS C ON B.CODARTICULO = C.CODARTICULO
+                            JOIN KITS D ON C.CODARTICULO = D.CODARTICULO
+                            WHERE A.NUMSERIE = @SERIE AND A.NUMALBARAN = @ALBARAN
+                            GROUP BY D.CODARTICULO
+                        ) AS X;";
+            command.Connection = GetSqlConnection();
+            command.CommandText = query;
+
+            command.Parameters.AddWithValue("@SERIE", SqlDbType.NVarChar).Value = DocumentSeries;
+            command.Parameters.AddWithValue("@ALBARAN", SqlDbType.Int).Value = DocumentNumber;
+
+            return command;
+        }
+        private SqlCommand InsertarSerialesCmd(List<String> sub_cadenas)
+        {
+            string query;
+            var command = new SqlCommand();
+
+
+            // Crear el comando dinámicamente según el número de subcadenas
+            string columnas = string.Join(",", sub_cadenas.Select((_, i) => $"COLUMNA{i + 1}"));
+            string valores = string.Join(",", sub_cadenas.Select((_, i) => $"@col{i + 1}"));
+            string aux_query = $"INSERT INTO ALBVENTACAMPOSLIBRES ({columnas}) VALUES ({valores})";//   !!IMPORTANTE!! DEBES CAMBIAR ESTE QUERY POR LOS NOMRBES CORRECTOS
+
+            query = aux_query;
+
+            // Agregar los parámetros
+            for (int i = 0; i < sub_cadenas.Count; i++)
+            {
+                command.Parameters.AddWithValue($"@col{i + 1}", sub_cadenas[i]);
+            }
+
+            command.Connection = GetSqlConnection();
+            command.CommandText = query;
+            return command;
+        }
+
+        
+        private SqlCommand RecuperarDatosCmd()
+        {
+            string query;
+            var command = new SqlCommand();
+
+            query = @"SELECT columna1, columna2, columna3, columna4 
+                        FROM ALBVENTACAMPOSLIBRES 
+                        WHERE id = 1";
+            command.Connection = GetSqlConnection();
+            command.CommandText = query;
+
+
+
+            return command;
+        }
+        
+        public String RecuperarDatos()
+        {
+
+            string datos = string.Empty;
+#if !DEBUG
+            try
+            {
+                using (var command = RecuperarDatosCmd())
+                {
+                    command.Connection.Open();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            datos = $"{reader["columna1"]}, {reader["columna2"]}, {reader["columna3"]}, {reader["columna4"]}";
+                        }
+                        reader.Close();
+                        command.Connection.Close();
+                        return datos;
+
+                    }
+
+                    return datos;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex);
+                return datos;
+            }
+#endif
+            return null;
+        }
+
+        //INSERTAR SERIALES
+        public bool InsertarSeriales(List<String> sub_cadenas)
+        {
+            const bool result = false;
+#if !DEBUG
+            try
+            {
+                using (var command = InsertarSerialesCmd(sub_cadenas))
+                {
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+                    command.Connection.Close();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex);
+                return false;
+            }
+#else
+            Result = false;
+#endif
+            return result;
+        }
+
+        
 
 
 
 
-//        public void RecuperaHoraServidor(object sender, EventArgs e)
-//        {
 
-//#if !DEBUG
-//            try
-//            {
-//                using (var command = RecuperaHoraServidorCmd())
-//                {
-//                    command.Connection.Open();
-//                    SqlDataReader reader = command.ExecuteReader();
-//                    command.Connection.Close();
+        //CUÁNTOS KITS HAY EN LA FACTURA:
+        public int Cantidad_Kits_Factura()
+        {
+#if !DEBUG
+            try
+            {
+                using (var command = Cantidad_Kits_FacturaCmd())
+                {
+                    command.Connection.Open();
 
-//                    if (reader.Read())
-//                    {
-//                        string currentDateTime = reader.GetString(0);
-//                        return currentDateTime;
-//                    }
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                MessageBox.Show("Algo salió mal recuperando la hora del servidor: " + ex);
-//            }
-//#endif
+                    int cantidad = Convert.ToInt32(command.ExecuteScalar().ToString());
 
-//            return "NULL";
-//        }
+                    return cantidad;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex);
+                return -1;
+            }
+#endif
+        }
+        //CUÁL ES EL KIT CON MÁS SERIALES:
+        public int obtener_cantidad_maxima_articulos_kit()
+        {
+#if !DEBUG
+            try
+            {
+                using (var command = Obtener_Cantidad_Maxima_Articulos_kitCmd())
+                {
+                    command.Connection.Open();
+
+                    int cantidad = Convert.ToInt32(command.ExecuteScalar().ToString());
+
+                    return cantidad;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex);
+                return -1;
+            }
+#endif
+        }
+        //CUÁLES SON LOS ARTÍCULOS/KITS Y SUS CANTIDADES EN LA FACTURA?
+        public List<Articulo_Cantidad> Obtener_Articulos_Cantidad()
+        {
+            List<Articulo_Cantidad> list_articulos = new List<Articulo_Cantidad>();
+#if !DEBUG
+            try
+            {
+                using (var command = Obtener_Articulos_CantidadCmd())
+                {
+                    command.Connection.Open();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        var cod_art_index = reader.GetOrdinal("CODIGOARTICULO");//CAMBIAR POR NOMBRE COLUMNA REAL
+                        var cantidad_index = reader.GetOrdinal("CANTIDAD_ARTICULOS");//CAMBIAR POR NOMBRE COLUMNA REAL
+
+                        while (reader.Read())
+                        {
+                            var cod_art = reader.GetValue(cod_art_index).ToString();
+                            var cantidad = Convert.ToInt32(reader.GetValue(cantidad_index).ToString());
+
+                            Articulo_Cantidad articulo = new Articulo_Cantidad
+                            {
+                                CODARTICULO = cod_art,
+                                CANTIDAD = cantidad
+                            };
+                            list_articulos.Add(articulo);
+                        }
+                        reader.Close();
+                        command.Connection.Close();
+                        return list_articulos;
+
+                    }
+
+                    return list_articulos;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex);
+                return list_articulos;
+            }
+#endif
+            return null;
+        }
+
+
+
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //        public void RecuperaHoraServidor(object sender, EventArgs e)
+        //        {
+
+        //#if !DEBUG
+        //            try
+        //            {
+        //                using (var command = RecuperaHoraServidorCmd())
+        //                {
+        //                    command.Connection.Open();
+        //                    SqlDataReader reader = command.ExecuteReader();
+        //                    command.Connection.Close();
+
+        //                    if (reader.Read())
+        //                    {
+        //                        string currentDateTime = reader.GetString(0);
+        //                        return currentDateTime;
+        //                    }
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                MessageBox.Show("Algo salió mal recuperando la hora del servidor: " + ex);
+        //            }
+        //#endif
+
+        //            return "NULL";
+        //        }
 
 
 
@@ -1093,47 +1431,74 @@ namespace Plugin_ICGFront
         private SqlCommand GetTaxReceiptInfoCmd()
         {
             const string query = @"
-            SELECT 
-	            F.*,
-	            CASE WHEN G.NUMSERIE IS NULL THEN 'Y' ELSE 'N' END COMPROBANTE_UNICO
-            FROM (SELECT 
-	            CASE WHEN W.ACTIVO = 0 THEN 'Y' ELSE 'N' END ACTIVO, 	          
-	            CASE WHEN W.FECHAVENCIMIENTO >= GETDATE() THEN 'Y' ELSE 'N' END NO_VENCIDO,	           
-	            ISNULL(W.NUMEROFINAL - W.CONTADOR, 0) COMPROBANTES_RESTANTES,	           
-	            CONCAT(W.SERIERESOL, RIGHT(CONCAT(REPLICATE('0', 9), W.CONTADOR + 1), 9)) COMPROBANTE_SIGUIENTE,
-	            ISNULL(Z.DESCRIPCION, 'NOTA DE CREDITO') TIPO_COMPROBANTE,
-                X.TIPOCLIENTE TIPO_CLIENTE,
-                X.TOTAL_NETO,
-	            X.NUMERO_COMPROBANTE
-            FROM (SELECT
-	            CASE WHEN X.TOTAL_NETO < 0 THEN '04' ELSE X.TIPOCLIENTE END TIPOCLIENTE,
-	            CONCAT(X.CAJA, '-', CASE WHEN X.TOTAL_NETO < 0 THEN '04' ELSE X.TIPOCLIENTE END) NUMRESOL,
-                X.TOTAL_NETO,
-	            X.NUMERO_COMPROBANTE
-            FROM (SELECT	           
-	            RIGHT(CONCAT('00', CASE WHEN ISNULL(Z.CLIF_TIPOCLIENTE, '0') <> '0' THEN Z.CLIF_TIPOCLIENTE ELSE ISNULL(Y.TIPO, 2) END), 2) TIPOCLIENTE,
-	            X.CAJA,	            
-	            X.TOTALNETO * X.FACTORMONEDA TOTAL_NETO,
-	            X.NUMSERIEFAC,	            
-	            X.NUMFAC,
-	            X.N,	            
-	            X.TIPODOC,
-	            X.CODCLIENTE,
-	            CONCAT(W.SERIEFISCAL1, W.NUMEROFISCAL) NUMERO_COMPROBANTE
-            FROM ALBVENTACAB X            
-            JOIN CLIENTES Y ON X.CODCLIENTE = Y.CODCLIENTE
-            LEFT JOIN FACTURASVENTASERIESRESOL W ON X.NUMSERIEFAC = W.NUMSERIE AND X.NUMFAC = W.NUMFACTURA AND X.N = W.N
-            LEFT JOIN FACTURASVENTACAMPOSLIBRES Z ON Z.NUMSERIE = X.NUMSERIEFAC AND Z.NUMFACTURA = X.NUMFAC AND Z.N = X.N) X         
-            WHERE X.NUMSERIEFAC = @DocumentSeries AND X.NUMFAC = @DocumentNumber AND X.TIPODOC = @DocumentTypeId) X            
-            LEFT JOIN SERIESRESOLUCION W ON X.NUMRESOL = W.NUMRESOL            
-            LEFT JOIN TIPOSCLIENTE Z ON X.TIPOCLIENTE = Z.CODIGO) F
-            LEFT JOIN FACTURASVENTASERIESRESOL G ON F.COMPROBANTE_SIGUIENTE = CONCAT(G.SERIEFISCAL1, RIGHT(CONCAT(REPLICATE('0', 9), G.NUMEROFISCAL), 9))";
+                     SELECT 
+    F.*,
+    CASE WHEN G.NUMSERIE IS NULL THEN 'Y' ELSE 'N' END COMPROBANTE_UNICO
+FROM (SELECT  
+    CASE WHEN W.ACTIVO = 0 THEN 'Y' ELSE 'N' END ACTIVO, 	          
+    CASE WHEN W.FECHAVENCIMIENTO >= GETDATE() THEN 'Y' ELSE 'N' END NO_VENCIDO,	           
+    ISNULL(W.NUMEROFINAL - W.CONTADOR, 0) COMPROBANTES_RESTANTES,	           
+    CONCAT(CONCAT('E', RIGHT(W.NUMRESOL, 2)), RIGHT(CONCAT(REPLICATE('0', 10), W.CONTADOR + 1), 10)) COMPROBANTE_SIGUIENTE,  
+    ISNULL(Z.DESCRIPCION, 'NOTA DE CREDITO') TIPO_COMPROBANTE,
+    X.TIPOCLIENTE TIPO_CLIENTE,
+    X.TOTAL_NETO,
+    X.NUMERO_COMPROBANTE
+FROM (SELECT 
+    CASE WHEN X.TOTAL_NETO < 0 THEN '34' ELSE X.TIPOCLIENTE END TIPOCLIENTE,
+    CONCAT(X.CAJA, '-', CASE WHEN X.TOTAL_NETO < 0 THEN '34' ELSE X.TIPOCLIENTE END) NUMRESOL,
+    X.TOTAL_NETO,
+    X.NUMERO_COMPROBANTE
+FROM (SELECT	
+          RIGHT(CONCAT('00', CASE WHEN ISNULL(Z.CLIF_TIPOCLIENTE, '0') <> '0' 
+					                    THEN (CASE 
+							                     WHEN Z.CLIF_TIPOCLIENTE = 1 THEN 31 
+							                     WHEN Z.CLIF_TIPOCLIENTE = 2 THEN 32 
+							                     WHEN Z.CLIF_TIPOCLIENTE = 14 THEN 44 
+							                     WHEN Z.CLIF_TIPOCLIENTE = 15 THEN 45 
+							                     WHEN Z.CLIF_TIPOCLIENTE = 16 THEN 46 									 
+						                      END)
+					                    ELSE 
+						                    (CASE 
+							                     WHEN Y.TIPO = 1 THEN 31 
+							                     WHEN Y.TIPO = 2 THEN 32 
+							                     WHEN Y.TIPO = 14 THEN 44 
+							                     WHEN Y.TIPO = 15 THEN 45 
+							                     WHEN Y.TIPO = 16 THEN 46 
+							                     ELSE 2
+						                      END) 
+                       END), 2)  
+                   TIPOCLIENTE,
+    
+    X.CAJA,	            
+    X.TOTALNETO * X.FACTORMONEDA TOTAL_NETO,
+    X.NUMSERIEFAC,	            
+    X.NUMFAC,
+    X.N,	            
+    X.TIPODOC,
+    X.CODCLIENTE,
+   CONCAT(CONCAT('E', RIGHT(W.SERIEFISCAL2, 2)), RIGHT(CONCAT(REPLICATE('0', 10), W.NUMEROFISCAL), 10)) NUMERO_COMPROBANTE  
+FROM ALBVENTACAB X      
+JOIN CLIENTES Y ON X.CODCLIENTE = Y.CODCLIENTE
+LEFT JOIN FACTURASVENTASERIESRESOL W ON X.NUMSERIEFAC = W.NUMSERIE AND X.NUMFAC = W.NUMFACTURA AND X.N = W.N
+LEFT JOIN FACTURASVENTACAMPOSLIBRES Z ON Z.NUMSERIE = X.NUMSERIEFAC AND Z.NUMFACTURA = X.NUMFAC AND Z.N = X.N) X         
+WHERE X.NUMSERIEFAC =@DocumentSeries AND X.NUMFAC = @DocumentNumber AND X.TIPODOC = @DocumentTypeId) X            
+LEFT JOIN SERIESRESOLUCION W ON X.NUMRESOL = W.NUMRESOL            
+LEFT JOIN TIPOSCLIENTE Z ON X.TIPOCLIENTE = (CASE 
+							                     WHEN CODIGO = 1 THEN 31 
+							                     WHEN CODIGO = 2 THEN 32 
+							                     WHEN CODIGO = 14 THEN 44 
+							                     WHEN CODIGO = 15 THEN 45  
+							                     ELSE 100 --INVÁLIDO
+						                      END)) F
+LEFT JOIN FACTURASVENTASERIESRESOL G ON F.COMPROBANTE_SIGUIENTE = CONCAT(CONCAT('E', RIGHT(G.SERIEFISCAL2, 2)),RIGHT(CONCAT(REPLICATE('0', 10), G.NUMEROFISCAL), 10))";
 
             var command = new SqlCommand
             {
                 Connection = GetSqlConnection(),
                 CommandText = query
             };
+
+            //MessageBox.Show($"Serie Documento: {DocumentSeries}, Número Documento: {DocumentNumber}, Tipo Documento: {DocumentTypeId}");
 
             command.Parameters.AddWithValue("@DocumentSeries", SqlDbType.NVarChar).Value = DocumentSeries;
             command.Parameters.AddWithValue("@DocumentNumber", SqlDbType.Int).Value = DocumentNumber;
@@ -1393,6 +1758,100 @@ namespace Plugin_ICGFront
             return command;
         }
 
+        private SqlCommand HasDifferentTaxCmd()
+        {
+            const string query = @"
+            SELECT TOP 1
+                CASE WHEN A.FACTORMONEDA <> C.FACTORMONEDA  THEN 'Y' ELSE 'N' END TASA_DIFERENTE,
+	            A.FACTORMONEDA TASA_NC, 
+	            C.FACTORMONEDA TASA_FAC,
+	            REPLACE(B.SUPEDIDO, '.', '') NO_DOCUMENTO
+            FROM ALBVENTACAB A 
+            JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN AND A.N = B.N
+            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIEFAC, '-', C.NUMFAC) = B.SUPEDIDO
+            WHERE A.NUMSERIEFAC = @DocumentSeries AND A.NUMFAC = @DocumentNumber AND A.TIPODOC = @DocumentTypeId AND B.CODARTICULO <> -1 AND A.CODMONEDA = 2 AND C.CODMONEDA = 2 AND A.FACTORMONEDA <> C.FACTORMONEDA
+            GROUP BY C.FACTORMONEDA, A.FACTORMONEDA, B.SUPEDIDO";
+
+            var command = new SqlCommand
+            {
+                Connection = GetSqlConnection(),
+                CommandText = query
+            };
+
+            command.Parameters.AddWithValue("@DocumentSeries", SqlDbType.NVarChar).Value = DocumentSeries;
+            command.Parameters.AddWithValue("@DocumentNumber", SqlDbType.Int).Value = DocumentNumber;
+            command.Parameters.AddWithValue("@DocumentTypeId", SqlDbType.Int).Value = DocumentTypeId;
+
+            return command;
+        } 
+
+        public CreditNoteDetail HasDifferentTax()
+        {
+            try
+            {
+                using (var command = HasDifferentTaxCmd())
+                {
+                    command.Connection.Open();
+
+                    var queryRows = new List<CreditNoteDetail>();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var columnIndexDocumentId = reader.GetOrdinal("NO_DOCUMENTO");
+                        var columnIndexTasaNotaCredito = reader.GetOrdinal("TASA_NC");
+                        var columnIndexTasaFactura = reader.GetOrdinal("TASA_FAC");
+                        var columnIndexTasaDiferente = reader.GetOrdinal("TASA_DIFERENTE");
+
+                        while (reader.Read())
+                        {
+                            var documentId = reader.GetValue(columnIndexDocumentId).ToString();
+                            var tasaNotaCredito = reader.GetValue(columnIndexTasaNotaCredito).ToString();
+                            var tasaFactura = reader.GetValue(columnIndexTasaFactura).ToString();
+                            var tasaDiferente = reader.GetValue(columnIndexTasaDiferente).ToString() == "Y";
+
+                            var refundDetail = new CreditNoteDetail(documentId, tasaNotaCredito, tasaFactura, tasaDiferente);
+
+                            queryRows.Add(refundDetail);
+                        }
+                    }
+
+                    command.Connection.Close();
+
+                    return queryRows[0];
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return null;
+        }
+
+        private SqlCommand UpdateTaxFromCreditNoteCmd()
+        {
+            const string query = @"
+                UPDATE A
+	                SET A.FACTORMONEDA = C.FACTORMONEDA
+                FROM ALBVENTACAB A 
+                JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN AND A.N = B.N
+                LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIEFAC, '-', C.NUMFAC) = B.SUPEDIDO
+                WHERE A.NUMSERIEFAC = DocumentSeries AND A.NUMFAC = @DocumentNumber AND A.TIPODOC = @DocumentTypeId AND B.CODARTICULO <> -1 AND A.CODMONEDA = 2 AND C.CODMONEDA = 2;";
+
+            var command = new SqlCommand
+            {
+                Connection = GetSqlConnection(),
+                CommandText = query
+            };
+
+            command.Parameters.AddWithValue("@DocumentSeries", SqlDbType.NVarChar).Value = DocumentSeries;
+            command.Parameters.AddWithValue("@DocumentNumber", SqlDbType.Int).Value = DocumentNumber;
+            command.Parameters.AddWithValue("@DocumentTypeId", SqlDbType.Int).Value = DocumentTypeId;
+
+            return command;
+        }
+
+
+
         private SqlCommand RestoreNcfCounterCmd()
         {
             const string query = @"
@@ -1421,6 +1880,24 @@ namespace Plugin_ICGFront
             try
             {
                 using (var command = RemoveItbisFromRefundCmd())
+                {
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+                    command.Connection.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        //nuevo: update tax from NC
+        public void UpdateTaxFromCreditNote()
+        {
+            try
+            {
+                using (var command = UpdateTaxFromCreditNoteCmd())
                 {
                     command.Connection.Open();
                     command.ExecuteNonQuery();
@@ -1815,7 +2292,7 @@ namespace Plugin_ICGFront
 	            A.NUMSERIE Series,
 	            A.NUMFAC Number,
 	            C.ALIAS CardCode,
-	            C.NOMBRECLIENTE CardName,
+	            C.NOMBRECLIENTE CardName,                                 
 	            CONVERT(VARCHAR, A.FECHA, 23) DocDate,
 	            D.INICIALES DocCur,
 	            FORMAT(A.TOTALNETO, '#,0.00') DocTotal
@@ -1823,7 +2300,8 @@ namespace Plugin_ICGFront
             JOIN FACTURASVENTASERIESRESOL B ON A.NUMFAC = B.NUMFACTURA AND A.NUMSERIEFAC = B.NUMSERIE 
             LEFT JOIN CLIENTES C ON A.CODCLIENTE = C.CODCLIENTE
             LEFT JOIN MONEDAS D ON A.CODMONEDA = D.CODMONEDA
-            WHERE A.Z = (SELECT TOP 1 NUMERO + 1 FROM ARQUEOS WHERE CERRADO = 1 AND ARQUEO = 'Z' AND CAJA = A.CAJA ORDER BY NUMERO DESC) AND (A.NUMSERIE = @DocumentSeries OR A.NUMSERIE = @DocumentFutureSeries) AND LEN(B.NUMEROFISCAL) < 9";
+            WHERE A.Z = (SELECT TOP 1 NUMERO + 1 FROM ARQUEOS WHERE CERRADO = 1 AND ARQUEO = 'Z' 
+            AND CAJA = A.CAJA ORDER BY NUMERO DESC) AND (A.NUMSERIE = @DocumentSeries OR A.NUMSERIE = @DocumentFutureSeries)"; //AND LEN(B.NUMEROFISCAL) < 9
 
             var command = new SqlCommand
             {

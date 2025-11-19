@@ -28,12 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.continueBtn = new System.Windows.Forms.Button();
-            this.Cancel_Btn = new System.Windows.Forms.Button();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -41,78 +39,55 @@
             this.lblRelog = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.lb_nombre_trabajador = new System.Windows.Forms.Label();
+            this.Cancel_Btn = new System.Windows.Forms.Button();
+            this.continueBtn = new System.Windows.Forms.Button();
+            this.label_tiempo_restante = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // continueBtn
-            // 
-            this.continueBtn.BackColor = System.Drawing.Color.DeepSkyBlue;
-            this.continueBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.continueBtn.Font = new System.Drawing.Font("Arial Narrow", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.continueBtn.Location = new System.Drawing.Point(1106, 553);
-            this.continueBtn.Name = "continueBtn";
-            this.continueBtn.Size = new System.Drawing.Size(139, 43);
-            this.continueBtn.TabIndex = 11;
-            this.continueBtn.Text = "Eliminar";
-            this.continueBtn.UseVisualStyleBackColor = false;
-            this.continueBtn.Click += new System.EventHandler(this.continueBtn_Click);
-            // 
-            // Cancel_Btn
-            // 
-            this.Cancel_Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.Cancel_Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Cancel_Btn.Font = new System.Drawing.Font("Arial Narrow", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Cancel_Btn.Location = new System.Drawing.Point(12, 553);
-            this.Cancel_Btn.Name = "Cancel_Btn";
-            this.Cancel_Btn.Size = new System.Drawing.Size(139, 43);
-            this.Cancel_Btn.TabIndex = 12;
-            this.Cancel_Btn.Text = "Cancelar";
-            this.Cancel_Btn.UseVisualStyleBackColor = false;
-            this.Cancel_Btn.Click += new System.EventHandler(this.Cancel_Btn_Click);
             // 
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToAddRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.WhiteSmoke;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.White;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.WhiteSmoke;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.Color.White;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dataGridView1.BackgroundColor = System.Drawing.SystemColors.ButtonHighlight;
             this.dataGridView1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.dataGridView1.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridView1.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Sunken;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.ControlLight;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.MenuHighlight;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.ControlLight;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.MenuHighlight;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle6;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Arial Narrow", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Arial Narrow", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle7;
             this.dataGridView1.EnableHeadersVisualStyles = false;
             this.dataGridView1.GridColor = System.Drawing.SystemColors.ButtonFace;
             this.dataGridView1.Location = new System.Drawing.Point(12, 43);
             this.dataGridView1.Name = "dataGridView1";
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle8;
             this.dataGridView1.RowHeadersVisible = false;
-            this.dataGridView1.Size = new System.Drawing.Size(1233, 504);
+            this.dataGridView1.Size = new System.Drawing.Size(1257, 504);
             this.dataGridView1.TabIndex = 13;
             // 
             // label1
@@ -128,10 +103,10 @@
             // label2
             // 
             this.label2.Font = new System.Drawing.Font("Arial Narrow", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(673, 556);
+            this.label2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.label2.Location = new System.Drawing.Point(632, 560);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(427, 29);
+            this.label2.Size = new System.Drawing.Size(460, 29);
             this.label2.TabIndex = 15;
             this.label2.Text = "¿Desea eliminar las facturas pendientes?";
             this.label2.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
@@ -140,7 +115,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Arial Narrow", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(963, 16);
+            this.label3.Location = new System.Drawing.Point(987, 16);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(52, 23);
             this.label3.TabIndex = 16;
@@ -149,8 +124,8 @@
             // lblRelog
             // 
             this.lblRelog.Font = new System.Drawing.Font("Arial Narrow", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRelog.ForeColor = System.Drawing.Color.White;
-            this.lblRelog.Location = new System.Drawing.Point(1018, 9);
+            this.lblRelog.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.lblRelog.Location = new System.Drawing.Point(1042, 9);
             this.lblRelog.Name = "lblRelog";
             this.lblRelog.Size = new System.Drawing.Size(227, 31);
             this.lblRelog.TabIndex = 17;
@@ -160,29 +135,68 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Arial Narrow", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(571, 16);
+            this.label4.Location = new System.Drawing.Point(569, 16);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(80, 23);
+            this.label4.Size = new System.Drawing.Size(84, 23);
             this.label4.TabIndex = 18;
-            this.label4.Text = "Vendedor";
+            this.label4.Text = "Vendedor:";
             // 
             // lb_nombre_trabajador
             // 
             this.lb_nombre_trabajador.AutoSize = true;
             this.lb_nombre_trabajador.Font = new System.Drawing.Font("Arial Narrow", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lb_nombre_trabajador.ForeColor = System.Drawing.Color.White;
-            this.lb_nombre_trabajador.Location = new System.Drawing.Point(657, 15);
+            this.lb_nombre_trabajador.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.lb_nombre_trabajador.Location = new System.Drawing.Point(666, 16);
             this.lb_nombre_trabajador.Name = "lb_nombre_trabajador";
             this.lb_nombre_trabajador.Size = new System.Drawing.Size(50, 23);
             this.lb_nombre_trabajador.TabIndex = 19;
             this.lb_nombre_trabajador.Text = "NULL";
             // 
+            // Cancel_Btn
+            // 
+            this.Cancel_Btn.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.Cancel_Btn.Font = new System.Drawing.Font("Arial Narrow", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Cancel_Btn.Image = global::Plugin_ICGFront.Properties.Resources.icono_cancelar;
+            this.Cancel_Btn.Location = new System.Drawing.Point(12, 549);
+            this.Cancel_Btn.Name = "Cancel_Btn";
+            this.Cancel_Btn.Size = new System.Drawing.Size(172, 58);
+            this.Cancel_Btn.TabIndex = 12;
+            this.Cancel_Btn.Text = "Cancelar";
+            this.Cancel_Btn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.Cancel_Btn.UseVisualStyleBackColor = false;
+            this.Cancel_Btn.Click += new System.EventHandler(this.Cancel_Btn_Click);
+            // 
+            // continueBtn
+            // 
+            this.continueBtn.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.continueBtn.Font = new System.Drawing.Font("Arial Narrow", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.continueBtn.Image = global::Plugin_ICGFront.Properties.Resources.icono_aceptar;
+            this.continueBtn.Location = new System.Drawing.Point(1098, 549);
+            this.continueBtn.Name = "continueBtn";
+            this.continueBtn.Size = new System.Drawing.Size(172, 58);
+            this.continueBtn.TabIndex = 11;
+            this.continueBtn.Text = "Eliminar";
+            this.continueBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.continueBtn.UseVisualStyleBackColor = false;
+            this.continueBtn.Click += new System.EventHandler(this.continueBtn_Click);
+            // 
+            // label_tiempo_restante
+            // 
+            this.label_tiempo_restante.Font = new System.Drawing.Font("Arial Narrow", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_tiempo_restante.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.label_tiempo_restante.Location = new System.Drawing.Point(190, 564);
+            this.label_tiempo_restante.Name = "label_tiempo_restante";
+            this.label_tiempo_restante.Size = new System.Drawing.Size(411, 29);
+            this.label_tiempo_restante.TabIndex = 21;
+            this.label_tiempo_restante.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
+            // 
             // ClearPendingDocuments
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
-            this.ClientSize = new System.Drawing.Size(1257, 608);
+            this.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.ClientSize = new System.Drawing.Size(1278, 608);
+            this.Controls.Add(this.label_tiempo_restante);
             this.Controls.Add(this.lb_nombre_trabajador);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.lblRelog);
@@ -199,7 +213,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Borrar Documentos Pendientes";
             this.TopMost = true;
-            this.Load += new System.EventHandler(this.ClearPendingDocuments_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -217,5 +230,6 @@
         private System.Windows.Forms.Label lblRelog;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label lb_nombre_trabajador;
+        private System.Windows.Forms.Label label_tiempo_restante;
     }
 }

@@ -48,6 +48,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
@@ -163,6 +164,8 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Articulo_Cantidad.cs" />
+    <Compile Include="Models\CreditNoteDetail.cs" />
     <Compile Include="Models\InvoicePendingInfo.cs" />
     <Compile Include="Models\ContributorInfo.cs" />
     <Compile Include="Models\ContributorUpdatePayload.cs" />
@@ -245,6 +248,12 @@
     <Compile Include="Views\RefundAlert.Designer.cs">
       <DependentUpon>RefundAlert.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\SerialsInvoice.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\SerialsInvoice.Designer.cs">
+      <DependentUpon>SerialsInvoice.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\UpdateContributors.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -296,6 +305,9 @@
     <EmbeddedResource Include="Views\RefundAlert.resx">
       <DependentUpon>RefundAlert.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Views\SerialsInvoice.resx">
+      <DependentUpon>SerialsInvoice.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Views\UpdateContributors.resx">
       <DependentUpon>UpdateContributors.cs</DependentUpon>
     </EmbeddedResource>
@@ -322,6 +334,8 @@
     <Content Include="ICGPluginParameters.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\icono-cancelar.png" />
+    <None Include="Resources\icono-aceptar.png" />
     <Content Include="Resources\plugin-icon.ico" />
     <None Include="Resources\warning-icon.png" />
   </ItemGroup>

@@ -25,17 +25,47 @@ namespace Plugin_ICGFront.Views
         private Timer timer;
 
         bool valida_hay_documentos;
-        
+
+        private Timer timer_cierre_form;
+        private int tiempoRestante;
+
         DateTime hoy;
         string dia_servidor;
 
         public ClearPendingDocuments(ParsedDocument parsedDocument)
         { 
-             
-            InitializeComponent();
-            InitializeTimer();
             this._parsedDocument = parsedDocument;
 
+            if (!this.HayFacturasPendientes())
+            {
+                MessageBox.Show("No existen facturas pendientes.");
+                Application.Exit(); 
+            }
+            
+            InitializeComponent();
+
+            InitializeTimer();
+            tiempoRestante = 120; //en dos minutos cerrará el programa
+
+            label_tiempo_restante.AutoSize = true;
+            timer_cierre_form = new Timer();
+            timer_cierre_form.Interval = 1000;
+
+            timer_cierre_form.Tick += (s, e) =>
+            {
+                tiempoRestante--;
+                label_tiempo_restante.Text = $"Cerrando en {tiempoRestante} segundos...";
+
+                if (tiempoRestante <= 0)
+                {
+                    timer_cierre_form.Stop();
+                    Application.Exit(); 
+                }
+            };
+             
+            label_tiempo_restante.Text = $"Cerrando en {tiempoRestante} segundos...";
+            timer_cierre_form.Start();
+             
             try
             {
                 this.lb_nombre_trabajador.Text = this._parsedDocument.GetEmployeeName();
@@ -48,34 +78,33 @@ namespace Plugin_ICGFront.Views
             
             try
             {
-                this.dataGridView1.Columns.Add("NUMALBARAN", "NÚMERO ALBARAN");
-                this.dataGridView1.Columns.Add("NUMSERIE", "NÚMERO SERIE");
-                this.dataGridView1.Columns.Add("NOMBRECLIENTE", "CLIENTE");
+                this.dataGridView1.Columns.Add("NUMALBARAN", "NO. ALB");
+                this.dataGridView1.Columns.Add("NUMSERIE", "SERIE");
+                this.dataGridView1.Columns.Add("NOMBRECLIENTE", "NOMBRE CLIENTE");
                 this.dataGridView1.Columns.Add("TOTALBRUTO", "TOTAL BRUTO");
                 this.dataGridView1.Columns.Add("TOTALNETO", "TOTAL NETO");
                 this.dataGridView1.Columns.Add("CAJA", "CAJA");
-                this.dataGridView1.Columns.Add("CODVENDEDOR", "CODIGO VENDEDOR");
+                this.dataGridView1.Columns.Add("CODVENDEDOR", "COD. VENDEDOR");
                 this.dataGridView1.Columns.Add("NOMVENDEDOR", "VENDEDOR DESPACHO");
                 this.dataGridView1.Columns.Add("FECHA", "FECHA");
-
+                this.dataGridView1.Columns["FECHA"].DefaultCellStyle.Format = "dd/MM/yyyy";
 
                 List<InvoicePendingInfo> documentosPendientes = this._parsedDocument.GetPendingDocuments();
                 if (documentosPendientes.Count > 0)
                 {
-                    foreach (var persona in documentosPendientes)
+                    foreach (var doc in documentosPendientes)
                     {
                         dataGridView1.Rows.Add
                             (
-                                persona.NUMALBARAN, 
-                                persona.NUMSERIE, 
-                                persona.NOMBRECLIENTE, 
-                                persona.TOTALBRUTO, 
-                                persona.TOTALNETO, 
-                                persona.CAJA,
-                                persona.CODVENDEDOR,
-                                persona.NOMVENDEDOR,
-                                persona.FECHA
-
+                                doc.NUMALBARAN,
+                                doc.NUMSERIE,
+                                doc.NOMBRECLIENTE,
+                                doc.TOTALBRUTO,
+                                doc.TOTALNETO,
+                                doc.CAJA,
+                                doc.CODVENDEDOR,
+                                doc.NOMVENDEDOR,
+                                doc.FECHA
                             );
                     }
                     this.valida_hay_documentos = true;
@@ -89,7 +118,23 @@ namespace Plugin_ICGFront.Views
             catch (Exception ex)
             {
                 MessageBox.Show("Error, No se encontraron documentos pendientes.");
+            } 
+
+        }
+
+        private bool HayFacturasPendientes()
+        {
+            int num = 0;
+            try
+            {
+                num = this._parsedDocument.PendingDocumendsExists();
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error Buscando Existencia de facturas pendientes: " + ex);
+            }
+
+            return num == 1;
         }
 
         private void InitializeTimer()
@@ -238,12 +283,7 @@ namespace Plugin_ICGFront.Views
         private void button1_Click(object sender, EventArgs e)
         {
             Application.Exit();
-        }
-
-        private void ClearPendingDocuments_Load(object sender, EventArgs e)
-        {
-
-        }
+        } 
     }
 
     public class Datos
