@@ -34,6 +34,7 @@ namespace Plugin_ICGFront
 
             if (parsedDocument == null)
             {
+                MessageBox.Show("No leyó el xml");
                 Application.Exit();
                 return;
             }
@@ -82,6 +83,9 @@ namespace Plugin_ICGFront
                     break;
                 case "clear-pending-documents":
                     ClearPendingDocuments(parsedDocument);
+                    break;
+                case "change-rate-credit-memo":
+                    ChangeRateCreditMemo(parsedDocument);
                     break;
                 /*case "saving-long-serials":
                     SavingLongSerials(parsedDocument);
@@ -317,6 +321,7 @@ namespace Plugin_ICGFront
 
             if (!canCreateInvoices)
             {
+                MessageBox.Show("No puede crear facturas");
                 StopTransactionExecution(parsedDocument);
                 return;
             }
@@ -351,7 +356,7 @@ namespace Plugin_ICGFront
 
             //Nuevo: Las notas de crédito que excedan los 30 días y tengan una diferencia en la modenada
 
-            var hasDifferentTax = parsedDocument.HasDifferentTax();
+            /*var hasDifferentTax = parsedDocument.HasDifferentTax();
 
             if (hasDifferentTax != null && hasDifferentTax.TasaDiferente)
             {
@@ -361,7 +366,7 @@ namespace Plugin_ICGFront
                 {
                     form.ShowDialog();
                 }
-            }
+            }*/
 
             // refundDetail.GreaterThan30Days
 
@@ -435,7 +440,9 @@ namespace Plugin_ICGFront
                         !taxReceiptInfo.UniqueReceipt)
                     {
                         Utilities.ShowAlert(
-                            $@"No hay NCFs restantes de '{taxReceiptInfo.ReceiptType}'. Contacte con su administrador. Info Adicional: '{parsedDocument.DocumentSeries}-{parsedDocument.DocumentNumber}'. Restan: {taxReceiptInfo.RemainingReceipts}",
+                            $@"No hay NCFs restantes de '{taxReceiptInfo.ReceiptType}'. Contacte con su administrador. Info Adicional: Serie: '{parsedDocument.DocumentSeries}- 
+                                Número: {parsedDocument.DocumentNumber}'. Restan: {taxReceiptInfo.RemainingReceipts}
+                                - Longitud Siguiente: {taxReceiptInfo.NextReceipt.Length} - Comprobante Único: {taxReceiptInfo.UniqueReceipt}",
                             "Error", MessageBoxIcon.Error);
                         StopTransactionExecution(parsedDocument);
                         return;
@@ -684,7 +691,29 @@ namespace Plugin_ICGFront
 
             Close();
 
+        }//ChangeRateCreditMemo
+
+        private void ChangeRateCreditMemo(ParsedDocument parsedDocument)
+        {
+            //verificar si las tasas son diferentes
+            if ()
+            {
+                using (Form form = new ChangeRateCreditMemo(parsedDocument))
+                {
+                    form.ShowDialog();
+                }
+
+                Close();
+            }
+            else
+            {
+                //nothing
+            }
+
+            
+
         }
+
 
         private void SavingLongSerials(ParsedDocument parsedDocument)
         {

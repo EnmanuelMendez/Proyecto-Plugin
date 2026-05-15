@@ -194,6 +194,12 @@
     <Compile Include="Views\AuditInvoice.Designer.cs">
       <DependentUpon>AuditInvoice.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\ChangeRateCreditMemo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\ChangeRateCreditMemo.Designer.cs">
+      <DependentUpon>ChangeRateCreditMemo.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\CurrentRate.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -277,6 +283,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Views\AuditInvoice.resx">
       <DependentUpon>AuditInvoice.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Views\ChangeRateCreditMemo.resx">
+      <DependentUpon>ChangeRateCreditMemo.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Views\CurrentRate.resx">
       <DependentUpon>CurrentRate.cs</DependentUpon>

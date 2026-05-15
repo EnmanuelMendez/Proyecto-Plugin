@@ -38,6 +38,7 @@ namespace Plugin_ICGFront.Views
         public RefundAlert(string eventName, CreditNoteDetail creditNoteD)
         {
             InitializeComponent();
+             
 
             Color formColor;
             string warningText;

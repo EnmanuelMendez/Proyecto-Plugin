@@ -573,6 +573,207 @@ namespace Plugin_ICGFront
 
         #endregion
 
+
+
+        #region Plugin Cambiar Tasa Nota de Crédito
+
+        public SqlCommand GetInvoiceRateCmd()
+        {
+            const string query = @"
+                                SELECT TOP 1 FACTORMONEDA
+                                FROM ALBVENTACAB
+                                WHERE CODMONEDA = 2
+                                  AND NUMSERIE = @Serie
+                                  AND NUMFAC = @Numero;";
+
+            var command = new SqlCommand
+            {
+                Connection = GetSqlConnection(),
+                CommandText = query
+            };
+
+            //command.Parameters.AddWithValue("@Serie", serie);
+            //command.Parameters.AddWithValue("@Numero", numero);
+            command.Parameters.AddWithValue("@Serie", SqlDbType.NVarChar).Value = DocumentSeries;
+            command.Parameters.AddWithValue("@Numero", SqlDbType.Int).Value = DocumentNumber;
+
+            return command;
+        }
+
+        public decimal? GetInvoiceRate()
+        {
+#if !DEBUG
+            using (var command = GetInvoiceRateCmd())
+            {
+                command.Connection.Open();
+
+                object result = command.ExecuteScalar();
+
+                if (result == null || result == DBNull.Value)
+                    return null;
+
+                return Convert.ToDecimal(result);
+            }
+#else
+    return 58.50m;
+#endif
+        }
+
+        public SqlCommand GetCurrencyRateCmd()
+        {
+            const string query = @"
+                        SELECT TASA 
+                        FROM MONEDAS 
+                        WHERE CODMONEDA = 2;";
+
+            var command = new SqlCommand
+            {
+                Connection = GetSqlConnection(),
+                CommandText = query
+            };
+
+            return command;
+        }
+
+        public decimal GetCurrencyRate()
+        {
+#if !DEBUG
+            using (var command = GetCurrencyRateCmd())
+            {
+                command.Connection.Open();
+
+                object result = command.ExecuteScalar();
+
+                if (result == null || result == DBNull.Value)
+                    return 0;
+
+                return Convert.ToDecimal(result);
+            }
+#else
+    return 60.00m;
+#endif
+        }
+
+        public SqlCommand GetTodayQuotationRateCmd()
+        {
+            const string query = @"
+                        SELECT TOP 1 COTIZACION
+                        FROM COTIZACIONES
+                        WHERE CAST(FECHA AS DATE) = CAST(GETDATE() AS DATE);";
+
+            var command = new SqlCommand
+            {
+                Connection = GetSqlConnection(),
+                CommandText = query
+            };
+
+            return command;
+        }
+
+        public decimal GetTodayQuotationRate()
+        {
+#if !DEBUG
+            using (var command = GetTodayQuotationRateCmd())
+            {
+                command.Connection.Open();
+
+                object result = command.ExecuteScalar();
+
+                if (result == null || result == DBNull.Value)
+                    return 0;
+
+                return Convert.ToDecimal(result);
+            }
+#else
+    return 60.00m;
+#endif
+        }
+
+        public bool ChangeRateForCreditMemo(decimal nuevaTasa)
+        {
+#if !DEBUG
+            using (SqlConnection connection = GetSqlConnection())
+            {
+                connection.Open();
+
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string updateMonedas = @"
+                                        UPDATE MONEDAS 
+                                        SET COTDEF = @NuevaTasa
+                                        WHERE CODMONEDA = 2;";
+
+                        using (SqlCommand cmdMonedas = new SqlCommand(updateMonedas, connection, transaction))
+                        {
+                            cmdMonedas.Parameters.AddWithValue("@NuevaTasa", nuevaTasa);
+                            cmdMonedas.ExecuteNonQuery();
+                        }
+
+                        string updateCotizaciones = @"
+                                        UPDATE COTIZACIONES
+                                        SET COTIZACION = @NuevaTasa
+                                        WHERE CAST(FECHA AS DATE) = CAST(GETDATE() AS DATE);";
+
+                        using (SqlCommand cmdCotizaciones = new SqlCommand(updateCotizaciones, connection, transaction))
+                        {
+                            cmdCotizaciones.Parameters.AddWithValue("@NuevaTasa", nuevaTasa);
+                            cmdCotizaciones.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+#else
+    return true;
+#endif
+        }
+
+        public DateTime GetServerDateTime()
+        {
+#if !DEBUG
+            using (var command = RecuperaHoraServidorCompletaCmd())
+            {
+                command.Connection.Open();
+
+                object result = command.ExecuteScalar();
+
+                if (result == null || result == DBNull.Value)
+                    return DateTime.Now;
+
+                return Convert.ToDateTime(result);
+            }
+#else
+    return DateTime.Now;
+#endif
+        }
+
+        public SqlCommand RecuperaHoraServidorCompletaCmd()
+        {
+            const string query = "SELECT GETDATE();";
+
+            var command = new SqlCommand
+            {
+                Connection = GetSqlConnection(),
+                CommandText = query
+            };
+
+            return command;
+        }
+
+        #endregion
+
+
+
+
         #region Proyecto Seriales
 
         private SqlCommand Cantidad_Kits_FacturaCmd()
@@ -1201,9 +1402,13 @@ namespace Plugin_ICGFront
                 CommandText = query
             };
 
-            command.Parameters.AddWithValue("@DocumentSeries", SqlDbType.NVarChar).Value = DocumentSeries;
-            command.Parameters.AddWithValue("@DocumentNumber", SqlDbType.Int).Value = DocumentNumber;
-            command.Parameters.AddWithValue("@DocumentTypeId", SqlDbType.Int).Value = DocumentTypeId;
+            command.Parameters.Add("@DocumentSeries", SqlDbType.NVarChar, 50).Value = DocumentSeries;
+            command.Parameters.Add("@DocumentNumber", SqlDbType.Int).Value = DocumentNumber;
+            command.Parameters.Add("@DocumentTypeId", SqlDbType.Int).Value = DocumentTypeId;
+
+            //command.Parameters.AddWithValue("@DocumentSeries", SqlDbType.NVarChar).Value = DocumentSeries;
+            //command.Parameters.AddWithValue("@DocumentNumber", SqlDbType.Int).Value = DocumentNumber;
+            //command.Parameters.AddWithValue("@DocumentTypeId", SqlDbType.Int).Value = DocumentTypeId;
 
             return command;
         }
@@ -1361,6 +1566,61 @@ namespace Plugin_ICGFront
         public bool CanCreateInvoices()
         {
             var result = false;
+
+#if !DEBUG
+            try
+            {
+                using (var command = ShouldBeAbleToCreateInvoiceCmd())
+                {
+                    command.Connection.Open();
+
+                    var queryRows = new List<string>();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var columnIndex = reader.GetOrdinal("PERMITIR_FACTURAR");
+
+                        while (reader.Read())
+                            queryRows.Add(reader.GetString(columnIndex));
+                    }
+
+                    MessageBox.Show(
+                        $"Cantidad de filas: {queryRows.Count}. Puede facturar: {queryRows.FirstOrDefault()}");
+
+                    result = queryRows.Count > 0 && queryRows[0] == "Y";
+                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(
+                    $"ERROR SQL\n\n" +
+                    $"Número: {ex.Number}\n" +
+                    $"Mensaje: {ex.Message}\n" +
+                    $"Procedimiento: {ex.Procedure}\n" +
+                    $"Línea: {ex.LineNumber}",
+                    "Error SQL Server",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"ERROR GENERAL\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+#else
+    result = true;
+#endif
+
+            return result;
+        }
+
+
+        /*public bool CanCreateInvoices()
+        {
+            var result = false;
 #if !DEBUG
             try
             {
@@ -1377,6 +1637,7 @@ namespace Plugin_ICGFront
                         while (reader.Read()) queryRows.Add(reader.GetValue(columnIndex).ToString());
                     }
 
+                    MessageBox.Show($"Cantidad de filas: {queryRows.Count}. Puede facturar: {queryRows.First()}");
                     result = queryRows.Count > 0 && queryRows.First() == "Y";
 
                     command.Connection.Close();
@@ -1384,13 +1645,14 @@ namespace Plugin_ICGFront
             }
             catch (Exception)
             {
+                MessageBox.Show("Error en el try-catch");
                 // ignored
             }
 #else
             Result = true;
 #endif
             return result;
-        }
+        }*/
 
         public bool CanCreateInvoicesForFp()
         {
@@ -1615,7 +1877,7 @@ LEFT JOIN FACTURASVENTASERIESRESOL G ON F.COMPROBANTE_SIGUIENTE = CONCAT(CONCAT(
 	            REPLACE(B.SUPEDIDO, '.', '') NO_DOCUMENTO
             FROM ALBVENTACAB A 
             JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN AND A.N = B.N
-            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIEFAC, '-', C.NUMFAC) = B.SUPEDIDO
+            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIE, '-', C.NUMALBARAN) = B.SUPEDIDO
             WHERE A.NUMSERIEFAC = @DocumentSeries AND A.NUMFAC = @DocumentNumber AND A.TIPODOC = @DocumentTypeId AND B.CODARTICULO <> -1
             GROUP BY C.FECHA, A.FECHA, B.SUPEDIDO";
 
@@ -1742,7 +2004,7 @@ LEFT JOIN FACTURASVENTASERIESRESOL G ON F.COMPROBANTE_SIGUIENTE = CONCAT(CONCAT(
 	            B.IVA = (CASE WHEN DATEDIFF(DAY, C.FECHA, A.FECHA) > 30 THEN 0 ELSE B.IVA END)
             FROM ALBVENTACAB A 
             JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN AND A.N = B.N
-            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIEFAC, '-', C.NUMFAC) = B.SUPEDIDO
+            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIE, '-', C.NUMALBARAN) = B.SUPEDIDO
             WHERE A.NUMSERIEFAC = @DocumentSeries AND A.NUMFAC = @DocumentNumber and A.TIPODOC = @DocumentTypeId";
 
             var command = new SqlCommand
@@ -1768,7 +2030,7 @@ LEFT JOIN FACTURASVENTASERIESRESOL G ON F.COMPROBANTE_SIGUIENTE = CONCAT(CONCAT(
 	            REPLACE(B.SUPEDIDO, '.', '') NO_DOCUMENTO
             FROM ALBVENTACAB A 
             JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN AND A.N = B.N
-            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIEFAC, '-', C.NUMFAC) = B.SUPEDIDO
+            LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIE, '-', C.NUMALBARAN) = B.SUPEDIDO
             WHERE A.NUMSERIEFAC = @DocumentSeries AND A.NUMFAC = @DocumentNumber AND A.TIPODOC = @DocumentTypeId AND B.CODARTICULO <> -1 AND A.CODMONEDA = 2 AND C.CODMONEDA = 2 AND A.FACTORMONEDA <> C.FACTORMONEDA
             GROUP BY C.FACTORMONEDA, A.FACTORMONEDA, B.SUPEDIDO";
 
@@ -1834,9 +2096,11 @@ LEFT JOIN FACTURASVENTASERIESRESOL G ON F.COMPROBANTE_SIGUIENTE = CONCAT(CONCAT(
 	                SET A.FACTORMONEDA = C.FACTORMONEDA
                 FROM ALBVENTACAB A 
                 JOIN ALBVENTALIN B ON A.NUMSERIE = B.NUMSERIE AND A.NUMALBARAN = B.NUMALBARAN AND A.N = B.N
-                LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIEFAC, '-', C.NUMFAC) = B.SUPEDIDO
-                WHERE A.NUMSERIEFAC = DocumentSeries AND A.NUMFAC = @DocumentNumber AND A.TIPODOC = @DocumentTypeId AND B.CODARTICULO <> -1 AND A.CODMONEDA = 2 AND C.CODMONEDA = 2;";
+                LEFT JOIN ALBVENTACAB C ON CONCAT('.', C.NUMSERIE, '-', C.NUMALBARAN) = B.SUPEDIDO
+                WHERE A.NUMSERIEFAC = @DocumentSeries AND A.NUMFAC = @DocumentNumber AND A.TIPODOC = @DocumentTypeId AND B.CODARTICULO <> -1 AND A.CODMONEDA = 2 AND C.CODMONEDA = 2;";
 
+
+            //MessageBox.Show("Hola DESDE EL UPDATE");
             var command = new SqlCommand
             {
                 Connection = GetSqlConnection(),
