@@ -769,6 +769,77 @@ namespace Plugin_ICGFront
             return command;
         }
 
+        public bool IsVendedorAutorizado()
+        {
+#if !DEBUG
+            const string query = @"SELECT 1 FROM VENDEDORES WHERE CODVENDEDOR IN (20,21,29,38,32,34,30,59,78,79,35) AND CODVENDEDOR = @CodVendedor;";
+
+            using (var command = new SqlCommand())
+            {
+                command.Connection = GetSqlConnection();
+                command.CommandText = query;
+                command.Parameters.AddWithValue("@CodVendedor", CodVendedor);
+
+                command.Connection.Open();
+                object result = command.ExecuteScalar();
+
+                return result != null && result != DBNull.Value;
+            }
+#else
+            return true;
+#endif
+        }
+
+        public bool EsCajaCredito()
+        {
+            string[] cajasPermitidas = { "AB1", "AB8", "AC6", "AD1", "AE2", "AS2" };
+            string cajaActual = DocumentSeries.Length >= 3 ? DocumentSeries.Substring(0, 3) : "";
+            return cajasPermitidas.Contains(cajaActual);
+        }
+
+        public bool EsNotaCredito()
+        {
+            return DocumentFutureSeries.EndsWith("H");
+        }
+
+        public bool TasasDiferentes()
+        {
+            decimal? tasaFactura = GetInvoiceRate();
+            if (tasaFactura == null) return false;
+
+            decimal tasaSistema = GetCurrencyRate();
+            return tasaFactura.Value != tasaSistema;
+        }
+
+        public bool HorarioValidoParaCambioTasa()
+        {
+            DateTime fechaServidor;
+
+            try
+            {
+                fechaServidor = GetServerDateTime();
+            }
+            catch
+            {
+                return false;
+            }
+
+            DayOfWeek dia = fechaServidor.DayOfWeek;
+            TimeSpan hora = fechaServidor.TimeOfDay;
+
+            if (dia == DayOfWeek.Sunday)
+                return false;
+
+            if (dia == DayOfWeek.Saturday)
+                return hora >= new TimeSpan(11, 50, 0) && hora <= new TimeSpan(23, 59, 59);
+
+            // Lunes a Viernes
+            if (dia >= DayOfWeek.Monday && dia <= DayOfWeek.Friday)
+                return hora >= new TimeSpan(11, 55, 0) || hora <= new TimeSpan(5, 0, 0);//(17, 55, 0)
+
+            return false;
+        }
+
         #endregion
 
 

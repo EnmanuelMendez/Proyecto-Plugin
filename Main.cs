@@ -354,21 +354,16 @@ namespace Plugin_ICGFront
                 }
             }
 
-            //Nuevo: Las notas de crédito que excedan los 30 días y tengan una diferencia en la modenada
-
-            /*var hasDifferentTax = parsedDocument.HasDifferentTax();
-
-            if (hasDifferentTax != null && hasDifferentTax.TasaDiferente)
+            //Validación de cambio de tasa para notas de crédito
+            if (parsedDocument.EsNotaCredito() && parsedDocument.EsCajaCredito()
+                && parsedDocument.IsVendedorAutorizado() && parsedDocument.HorarioValidoParaCambioTasa()
+                && parsedDocument.TasasDiferentes())
             {
-                parsedDocument.UpdateTaxFromCreditNote();
-
-                using (Form form = new RefundAlert(_eventName, hasDifferentTax))
+                using (Form form = new Views.ChangeRateCreditMemo(parsedDocument))
                 {
                     form.ShowDialog();
                 }
-            }*/
-
-            // refundDetail.GreaterThan30Days
+            }
 
             var askForClientData = parsedDocument.CheckIfCustomClientInvoice();
 
@@ -695,23 +690,18 @@ namespace Plugin_ICGFront
 
         private void ChangeRateCreditMemo(ParsedDocument parsedDocument)
         {
-            //verificar si las tasas son diferentes
-            if ()
+            //verificar si las tasas son diferentes, la caja es correcta, el vendedor está autorizado y el horario es válido
+            if (parsedDocument.EsNotaCredito() && parsedDocument.EsCajaCredito()
+                && parsedDocument.IsVendedorAutorizado() && parsedDocument.HorarioValidoParaCambioTasa()
+                && parsedDocument.TasasDiferentes())
             {
-                using (Form form = new ChangeRateCreditMemo(parsedDocument))
+                using (Form form = new Views.ChangeRateCreditMemo(parsedDocument))
                 {
                     form.ShowDialog();
                 }
-
-                Close();
-            }
-            else
-            {
-                //nothing
             }
 
-            
-
+            Close();
         }
 
 
